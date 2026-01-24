@@ -50,9 +50,13 @@
 #include "servers/tcpserver.h"
 #include "servers/websocketserver.h"
 #include "servers/webserver.h"
+#ifdef WITH_BT
 #include "servers/bluetoothserver.h"
+#endif
 #include "servers/mqttbroker.h"
+#ifdef WITH_TUNNEL_PROXY
 #include "servers/tunnelproxyserver.h"
+#endif
 
 #include "network/zeroconf/zeroconfservicepublisher.h"
 
@@ -179,6 +183,7 @@ ServerManager::ServerManager(Platform *platform, NymeaConfiguration *configurati
         }
     }
 
+#ifdef WITH_BT
     qCDebug(dcBluetoothServer()) << "Creating Bluetooth server.";
     m_bluetoothServer = new BluetoothServer(this);
     m_jsonServer->registerTransportInterface(m_bluetoothServer);
@@ -189,7 +194,9 @@ ServerManager::ServerManager(Platform *platform, NymeaConfiguration *configurati
             m_bluetoothServer->startServer();
         }
     }
+#endif
 
+#ifdef WITH_TUNNEL_PROXY
     foreach (const TunnelProxyServerConfiguration &config, configuration->tunnelProxyServerConfigurations()) {
         if (m_disableInsecureInterfaces && (!config.sslEnabled || !config.authenticationEnabled || config.ignoreSslErrors)) {
             qCWarning(dcServerManager()) << "Loaded insecure tunnelproxy server configuration" << config << "but insecure interfaces to the core are explicit disabled. This interface will not be started.";
@@ -212,6 +219,7 @@ ServerManager::ServerManager(Platform *platform, NymeaConfiguration *configurati
 
         tunnelProxyServer->startServer();
     }
+#endif
 
     foreach (const WebServerConfiguration &config, configuration->webServerConfigurations()) {
         WebServer *webServer = new WebServer(config, m_sslConfiguration, this);
@@ -250,8 +258,10 @@ ServerManager::ServerManager(Platform *platform, NymeaConfiguration *configurati
     connect(configuration, &NymeaConfiguration::mqttPolicyChanged, this, &ServerManager::mqttPolicyChanged);
     connect(configuration, &NymeaConfiguration::mqttPolicyRemoved, this, &ServerManager::mqttPolicyRemoved);
 
+#ifdef WITH_TUNNEL_PROXY
     connect(configuration, &NymeaConfiguration::tunnelProxyServerConfigurationChanged, this, &ServerManager::tunnelProxyServerConfigurationChanged);
     connect(configuration, &NymeaConfiguration::tunnelProxyServerConfigurationRemoved, this, &ServerManager::tunnelProxyServerConfigurationRemoved);
+#endif
 }
 
 /*! Returns the pointer to the created \l{JsonRPCServer} in this \l{ServerManager}. */
@@ -260,11 +270,13 @@ JsonRPCServerImplementation *ServerManager::jsonServer() const
     return m_jsonServer;
 }
 
+#ifdef WITH_BT
 /*! Returns the pointer to the created \l{BluetoothServer} in this \l{ServerManager}. */
 BluetoothServer *ServerManager::bluetoothServer() const
 {
     return m_bluetoothServer;
 }
+#endif
 
 /*! Returns the pointer to the created MockTcpServer in this \l{ServerManager}. */
 MockTcpServer *ServerManager::mockTcpServer() const
@@ -435,6 +447,7 @@ void ServerManager::mqttPolicyRemoved(const QString &clientId)
     m_mqttBroker->removePolicy(clientId);
 }
 
+#ifdef WITH_TUNNEL_PROXY
 void ServerManager::tunnelProxyServerConfigurationChanged(const QString &id)
 {
     TunnelProxyServer *server = m_tunnelProxyServers.value(id);
@@ -471,6 +484,7 @@ void ServerManager::tunnelProxyServerConfigurationRemoved(const QString &id)
     server->stopServer();
     server->deleteLater();
 }
+#endif
 
 bool ServerManager::registerZeroConfService(const ServerConfiguration &configuration, const QString &serverType, const QString &serviceType)
 {

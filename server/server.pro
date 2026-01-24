@@ -8,7 +8,7 @@ INCLUDEPATH += ../libnymea ../libnymea-core $$top_builddir
 target.path = $$[QT_INSTALL_PREFIX]/bin
 INSTALLS += target
 
-QT += sql websockets bluetooth dbus network
+QT += sql websockets network
 
 greaterThan(QT_MAJOR_VERSION, 5) {
     QT += core5compat
@@ -20,8 +20,7 @@ CONFIG += link_pkgconfig
 PKGCONFIG += nymea-zigbee nymea-mqtt
 
 LIBS += -L$$top_builddir/libnymea/ -lnymea \
-        -L$$top_builddir/libnymea-core -lnymea-core \
-        -lnymea-remoteproxyclient
+        -L$$top_builddir/libnymea-core -lnymea-core
 
 # Add rpath for easy running from the build dir, unless explicitly disabled
 !norpath: {
@@ -41,3 +40,15 @@ HEADERS += \
     nymeaservice.h \
     nymeaapplication.h
 
+
+! CONFIG(disabledbus) {
+    QT += dbus
+}
+
+! CONFIG(disablebt) {
+    QT += bluetooth
+}
+
+! CONFIG (disabletunnelproxy) {
+    LIBS += -lnymea-remoteproxyclient
+}

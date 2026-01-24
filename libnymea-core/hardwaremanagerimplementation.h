@@ -26,7 +26,6 @@
 #define HARDWAREMANAGERIMPLEMENTATION_H
 
 #include <QObject>
-#include <QDBusConnection>
 #include <QNetworkAccessManager>
 
 #include "hardwaremanager.h"
@@ -51,17 +50,23 @@ public:
     explicit HardwareManagerImplementation(Platform *platform, MqttBroker *mqttBroker, ZigbeeManager *zigbeeManager, ZWaveManager *zwaveManager, ModbusRtuManager *modbusRtuManager, QObject *parent = nullptr);
     ~HardwareManagerImplementation() override;
 
+#ifdef WITH_RT433
     Radio433 *radio433() override;
+#endif
     PluginTimerManager *pluginTimerManager() override;
     NetworkAccessManager *networkManager() override;
     UpnpDiscovery *upnpDiscovery() override;
     PlatformZeroConfController *zeroConfController() override;
+#ifdef WITH_BT
     BluetoothLowEnergyManager *bluetoothLowEnergyManager() override;
+#endif
     MqttProvider *mqttProvider() override;
     I2CManager *i2cManager() override;
     ZigbeeHardwareResource *zigbeeResource() override;
     ZWaveHardwareResource *zwaveResource() override;
+#ifdef WITH_MODBUS
     ModbusRtuHardwareResource *modbusRtuResource() override;
+#endif
     NetworkDeviceDiscovery *networkDeviceDiscovery() override;
 
 public slots:
@@ -74,15 +79,21 @@ private:
 
     // Hardware Resources
     PluginTimerManager *m_pluginTimerManager = nullptr;
+#ifdef WITH_RT433
     Radio433 *m_radio433 = nullptr;
+#endif
     NetworkAccessManager *m_networkManager = nullptr;
     UpnpDiscovery *m_upnpDiscovery = nullptr;
+#ifdef WITH_BT
     BluetoothLowEnergyManager *m_bluetoothLowEnergyManager = nullptr;
+#endif
     MqttProvider *m_mqttProvider = nullptr;
     I2CManager *m_i2cManager = nullptr;
     ZigbeeHardwareResourceImplementation *m_zigbeeResource = nullptr;
     ZWaveHardwareResourceImplementation *m_zwaveResource = nullptr;
+#ifdef WITH_MODBUS
     ModbusRtuHardwareResourceImplementation *m_modbusRtuResource = nullptr;
+#endif
     NetworkDeviceDiscoveryImpl *m_networkDeviceDiscovery = nullptr;
 
 };

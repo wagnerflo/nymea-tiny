@@ -53,17 +53,23 @@ public:
     HardwareManager(QObject *parent = nullptr);
     virtual ~HardwareManager() = default;
 
+#ifdef WITH_RT433
     virtual Radio433 *radio433() = 0;
+#endif
     virtual PluginTimerManager *pluginTimerManager() = 0;
     virtual NetworkAccessManager *networkManager() = 0;
     virtual UpnpDiscovery *upnpDiscovery() = 0;
     virtual PlatformZeroConfController *zeroConfController() = 0;
+#ifdef WITH_BT
     virtual BluetoothLowEnergyManager *bluetoothLowEnergyManager() = 0;
+#endif
     virtual MqttProvider *mqttProvider() = 0;
     virtual I2CManager *i2cManager() = 0;
     virtual ZigbeeHardwareResource *zigbeeResource() = 0;
     virtual ZWaveHardwareResource *zwaveResource() = 0;
+#ifdef WITH_MODBUS
     virtual ModbusRtuHardwareResource *modbusRtuResource() = 0;
+#endif
     virtual NetworkDeviceDiscovery *networkDeviceDiscovery() = 0;
 
 protected:

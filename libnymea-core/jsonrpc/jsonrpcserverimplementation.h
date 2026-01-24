@@ -54,11 +54,15 @@ public:
 
     Q_INVOKABLE JsonReply *CreateUser(const QVariantMap &params);
     Q_INVOKABLE JsonReply *Authenticate(const QVariantMap &params, const JsonContext &context);
+#ifdef WITH_DBUS
     Q_INVOKABLE JsonReply *RequestPushButtonAuth(const QVariantMap &params, const JsonContext &context);
+#endif
     Q_INVOKABLE JsonReply *KeepAlive(const QVariantMap &params);
 
 signals:
+#ifdef WITH_DBUS
     void PushButtonAuthFinished(const QUuid &clientId, const QVariantMap &params);
+#endif
 
     // Server API
 public:
@@ -92,7 +96,9 @@ private slots:
 
     void asyncReplyFinished();
 
+#ifdef WITH_DBUS
     void onPushButtonAuthFinished(int transactionId, bool success, const QByteArray &token);
+#endif
 
 private:
     QVariantMap m_api;
@@ -105,7 +111,9 @@ private:
     QHash<QUuid, QStringList> m_clientNotifications;
     QHash<QUuid, QLocale> m_clientLocales;
     QHash<QUuid, QByteArray> m_clientTokens;
+#ifdef WITH_DBUS
     QHash<int, QUuid> m_pushButtonTransactions;
+#endif
     QHash<QUuid, QTimer *> m_newConnectionWaitTimers;
 
     QHash<QString, JsonReply *> m_pairingRequests;

@@ -110,3 +110,45 @@ coverage {
 ccache {
     message("Using ccache.")
 }
+
+CONFIG(disablerf433) {
+    message("Building without RF433 support")
+} else {
+    message("Building with RF433 support")
+    DEFINES += WITHOUT_RF433
+}
+
+CONFIG(disablemodbus) {
+    message("Building without modbus support")
+} else {
+    message("Building with modbus support")
+    DEFINES += WITH_MODBUS
+}
+
+CONFIG(disablebt) {
+    message("Building without bluetooth support")
+} else {
+    message("Building with bluetooth support")
+    DEFINES += WITH_BT
+}
+
+CONFIG(disablenetworkmanager) {
+    message("Building without network manager support")
+} else {
+    message("Building with network manager support")
+    DEFINES += WITH_NMAN
+}
+
+CONFIG(disabledbus) {
+    message("Building without DBus support")
+} else {
+    message("Building with DBus support")
+    DEFINES += WITH_DBUS
+}
+
+CONFIG(disabletunnelproxy) {
+    message("Building without tunnel proxy support")
+} else {
+    message("Building with tunnel proxy support")
+    DEFINES += WITH_TUNNEL_PROXY
+}

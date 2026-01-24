@@ -49,10 +49,14 @@
 #include "zigbee/zigbeemanager.h"
 
 #include "zwave/zwavemanager.h"
+#ifdef WITH_MODBUS
 #include "hardware/modbus/modbusrtumanager.h"
+#endif
 #include "hardware/serialport/serialportmonitor.h"
 
+#ifdef WITH_NMAN
 #include <networkmanager.h>
+#endif
 
 #include <QDir>
 #include <QCoreApplication>
@@ -119,11 +123,21 @@ void NymeaCore::init(const QStringList &additionalInterfaces, bool disableLogEng
     qCDebug(dcCore()) << "Creating ZWave Manager";
     m_zwaveManager = new ZWaveManager(m_serialPortMonitor, this);
 
+#ifdef WITH_MODBUS
     qCDebug(dcCore()) << "Create Modbus RTU Manager";
     m_modbusRtuManager = new ModbusRtuManager(m_serialPortMonitor, this);
+#endif
 
     qCDebug(dcCore) << "Creating Hardware Manager";
-    m_hardwareManager = new HardwareManagerImplementation(m_platform, m_serverManager->mqttBroker(), m_zigbeeManager, m_zwaveManager, m_modbusRtuManager, this);
+    m_hardwareManager = new HardwareManagerImplementation(
+        m_platform, m_serverManager->mqttBroker(), m_zigbeeManager, m_zwaveManager,
+#ifdef WITH_MODBUS
+        m_modbusRtuManager,
+#else
+        nullptr,
+#endif
+        this
+    );
 
     qCDebug(dcCore) << "Creating Log Engine";
     m_logEngine = new LogEngineInfluxDB(m_configuration->logDBHost(), m_configuration->logDBName(), m_configuration->logDBUser(), m_configuration->logDBPassword(), this);
@@ -148,9 +162,11 @@ void NymeaCore::init(const QStringList &additionalInterfaces, bool disableLogEng
     qCDebug(dcCore()) << "Creating Tags Storage";
     m_tagsStorage = new TagsStorage(m_thingManager, m_ruleEngine, this);
 
+#ifdef WITH_NMAN
     qCDebug(dcCore) << "Creating Network Manager";
     m_networkManager = new NetworkManager(this);
     m_networkManager->start();
+#endif
 
     qCDebug(dcCore) << "Creating Debug Server Handler";
     m_debugServerHandler = new DebugServerHandler(this);
@@ -309,15 +325,19 @@ QStringList NymeaCore::loggingFiltersPlugins()
     return loggingFiltersPlugins;
 }
 
+#ifdef WITH_BT
 BluetoothServer *NymeaCore::bluetoothServer() const
 {
     return m_serverManager->bluetoothServer();
 }
+#endif
 
+#ifdef WITH_NMAN
 NetworkManager *NymeaCore::networkManager() const
 {
     return m_networkManager;
 }
+#endif
 
 UserManager *NymeaCore::userManager() const
 {
@@ -349,10 +369,12 @@ ZWaveManager *NymeaCore::zwaveManager() const
     return m_zwaveManager;
 }
 
+#ifdef WITH_MODBUS
 ModbusRtuManager *NymeaCore::modbusRtuManager() const
 {
     return m_modbusRtuManager;
 }
+#endif
 
 ExperienceManager *NymeaCore::experienceManager() const
 {

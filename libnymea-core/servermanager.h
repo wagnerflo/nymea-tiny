@@ -56,7 +56,9 @@ public:
 
     // Interfaces
     JsonRPCServerImplementation *jsonServer() const;
+#ifdef WITH_BT
     BluetoothServer *bluetoothServer() const;
+#endif
     MockTcpServer *mockTcpServer() const;
     MqttBroker *mqttBroker() const;
 
@@ -78,8 +80,10 @@ private slots:
     void mqttServerConfigurationRemoved(const QString &id);
     void mqttPolicyChanged(const QString &clientId);
     void mqttPolicyRemoved(const QString &clientId);
+#ifdef WITH_TUNNEL_PROXY
     void tunnelProxyServerConfigurationChanged(const QString &id);
     void tunnelProxyServerConfigurationRemoved(const QString &id);
+#endif
 
 private:
     bool registerZeroConfService(const ServerConfiguration &configuration, const QString &serverType, const QString &serviceType);
@@ -95,11 +99,15 @@ private:
     // Interfaces
     JsonRPCServerImplementation *m_jsonServer;
 
+#ifdef WITH_BT
     BluetoothServer *m_bluetoothServer;
+#endif
     QHash<QString, TcpServer *> m_tcpServers;
     QHash<QString, WebSocketServer *> m_webSocketServers;
     QHash<QString, WebServer *> m_webServers;
+#ifdef WITH_TUNNEL_PROXY
     QHash<QString, TunnelProxyServer *> m_tunnelProxyServers;
+#endif
     MockTcpServer *m_mockTcpServer;
 
     MqttBroker *m_mqttBroker;

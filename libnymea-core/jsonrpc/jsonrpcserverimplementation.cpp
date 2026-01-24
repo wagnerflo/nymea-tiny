@@ -51,7 +51,9 @@
 #include "ruleshandler.h"
 #include "logginghandler.h"
 #include "configurationhandler.h"
+#ifdef WITH_NMAN
 #include "networkmanagerhandler.h"
+#endif
 #include "tagshandler.h"
 #include "appdatahandler.h"
 #include "systemhandler.h"
@@ -199,7 +201,9 @@ JsonRPCServerImplementation::JsonRPCServerImplementation(const QSslConfiguration
     params.insert("deviceName", enumValueName(String));
     returns.insert("success", enumValueName(Bool));
     returns.insert("transactionId", enumValueName(Int));
+#ifdef WITH_DBUS
     registerMethod("RequestPushButtonAuth", description, params, returns, Types::PermissionScopeNone);
+#endif
 
     params.clear(); returns.clear();
     description = "This is basically a Ping/Pong mechanism a client app may use to check server connectivity. Currently, the server does not actually do anything with this information and will return the call providing the given sessionId back to the caller. It is up to the client whether to use this or not and not required by the server to keep the connection alive.";
@@ -216,7 +220,9 @@ JsonRPCServerImplementation::JsonRPCServerImplementation(const QSslConfiguration
     params.insert("o:token", enumValueName(String));
     registerNotification("PushButtonAuthFinished", description, params);
 
+#ifdef WITH_DBUS
     connect(NymeaCore::instance()->userManager(), &UserManager::pushButtonAuthFinished, this, &JsonRPCServerImplementation::onPushButtonAuthFinished);
+#endif
 
 
 
@@ -407,6 +413,7 @@ JsonReply *JsonRPCServerImplementation::Authenticate(const QVariantMap &params, 
     return createReply(ret);
 }
 
+#ifdef WITH_DBUS
 JsonReply *JsonRPCServerImplementation::RequestPushButtonAuth(const QVariantMap &params, const JsonContext &context)
 {
     QString deviceName = params.value("deviceName").toString();
@@ -421,6 +428,7 @@ JsonReply *JsonRPCServerImplementation::RequestPushButtonAuth(const QVariantMap 
     data.insert("success", true);
     return createReply(data);
 }
+#endif
 
 /*! A client may use this as a ping/pong mechanism to check server connectivity. */
 JsonReply *JsonRPCServerImplementation::KeepAlive(const QVariantMap &params)
@@ -520,14 +528,18 @@ void JsonRPCServerImplementation::setup()
     registerHandler(new RulesHandler(NymeaCore::instance()->ruleEngine(), this));
     registerHandler(new LoggingHandler(NymeaCore::instance()->logEngine(), this));
     registerHandler(new ConfigurationHandler(this));
+#ifdef WITH_NMAN
     registerHandler(new NetworkManagerHandler(NymeaCore::instance()->networkManager(), this));
+#endif
     registerHandler(new TagsHandler(this));
     registerHandler(new AppDataHandler(this));
     registerHandler(new SystemHandler(NymeaCore::instance()->platform(), this));
     registerHandler(new UsersHandler(NymeaCore::instance()->userManager(), this));
     registerHandler(new ZigbeeHandler(NymeaCore::instance()->zigbeeManager(), this));
     registerHandler(new ZWaveHandler(NymeaCore::instance()->zwaveManager(), this));
+#ifdef WITH_MODBUS
     registerHandler(new ModbusRtuHandler(NymeaCore::instance()->modbusRtuManager(), this));
+#endif
 }
 
 void JsonRPCServerImplementation::processData(const QUuid &clientId, const QByteArray &data)
@@ -905,6 +917,7 @@ void JsonRPCServerImplementation::asyncReplyFinished()
     reply->deleteLater();
 }
 
+#ifdef WITH_DBUS
 void JsonRPCServerImplementation::onPushButtonAuthFinished(int transactionId, bool success, const QByteArray &token)
 {
     QUuid clientId = m_pushButtonTransactions.take(transactionId);
@@ -923,6 +936,7 @@ void JsonRPCServerImplementation::onPushButtonAuthFinished(int transactionId, bo
 
     emit PushButtonAuthFinished(clientId, params);
 }
+#endif
 
 bool JsonRPCServerImplementation::registerHandler(JsonHandler *handler)
 {
@@ -1106,10 +1120,11 @@ void JsonRPCServerImplementation::clientDisconnected(const QUuid &clientId)
     m_clientLocales.remove(clientId);
     m_clientTokens.remove(clientId);
 
+#ifdef WITH_DBUS
     if (m_pushButtonTransactions.values().contains(clientId)) {
         NymeaCore::instance()->userManager()->cancelPushButtonAuth(m_pushButtonTransactions.key(clientId));
     }
-
+#endif
     if (m_newConnectionWaitTimers.contains(clientId)) {
         delete m_newConnectionWaitTimers.take(clientId);
     }

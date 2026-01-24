@@ -98,15 +98,21 @@ public:
     ScriptEngine *scriptEngine() const;
     TimeManager *timeManager() const;
     ServerManager *serverManager() const;
+#ifdef WITH_BT
     BluetoothServer *bluetoothServer() const;
+#endif
+#ifdef WITH_NMAN
     NetworkManager *networkManager() const;
+#endif
     UserManager *userManager() const;
     DebugServerHandler *debugServerHandler() const;
     TagsStorage *tagsStorage() const;
     Platform *platform() const;
     ZigbeeManager *zigbeeManager() const;
     ZWaveManager *zwaveManager() const;
+#ifdef WITH_MODBUS
     ModbusRtuManager *modbusRtuManager() const;
+#endif
     ExperienceManager *experienceManager() const;
 
     static QStringList getAvailableLanguages();
@@ -136,14 +142,18 @@ private:
     DebugServerHandler *m_debugServerHandler = nullptr;
     TagsStorage *m_tagsStorage = nullptr;
 
+#ifdef WITH_NMAN
     NetworkManager *m_networkManager = nullptr;
+#endif
     UserManager *m_userManager = nullptr;
     System *m_system = nullptr;
     ExperienceManager *m_experienceManager = nullptr;
     ZigbeeManager *m_zigbeeManager = nullptr;
     ZWaveManager *m_zwaveManager = nullptr;
     SerialPortMonitor *m_serialPortMonitor = nullptr;
+#ifdef WITH_MODBUS
     ModbusRtuManager *m_modbusRtuManager = nullptr;
+#endif
 
 
 private slots:

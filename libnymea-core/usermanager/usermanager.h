@@ -65,8 +65,10 @@ public:
     bool pushButtonAuthAvailable() const;
 
     QByteArray authenticate(const QString &username, const QString &password, const QString &deviceName);
+#ifdef WITH_DBUS
     int requestPushButtonAuth(const QString &deviceName);
     void cancelPushButtonAuth(int transactionId);
+#endif
 
     UserInfo userInfo(const QString &username = QString()) const;
     TokenInfo tokenInfo(const QByteArray &token) const;
@@ -89,7 +91,9 @@ signals:
     void userAdded(const QString &username);
     void userRemoved(const QString &username);
     void userChanged(const QString &username);
+#ifdef WITH_DBUS
     void pushButtonAuthFinished(int transactionId, bool success, const QByteArray &token);
+#endif
 
     void userThingRestrictionsChanged(const nymeaserver::UserInfo &userInfo, const ThingId &thingId, bool accessGranted);
 
@@ -106,13 +110,17 @@ private:
     void evaluateAllowedThingsForUser();
 
 private slots:
+#ifdef WITH_DBUS
     void onPushButtonPressed();
+#endif
 
 private:
     QSqlDatabase m_db;
+#ifdef WITH_DBUS
     PushButtonDBusService *m_pushButtonDBusService = nullptr;
     int m_pushButtonTransactionIdCounter = 0;
     QPair<int, QString> m_pushButtonTransaction;
+#endif
 
 };
 

@@ -32,15 +32,21 @@
 #include "hardware/plugintimermanagerimplementation.h"
 #include "hardware/network/upnp/upnpdiscoveryimplementation.h"
 #include "hardware/network/networkaccessmanagerimpl.h"
+#ifdef WITH_RF433
 #include "hardware/radio433/radio433brennenstuhl.h"
+#endif
+#ifdef WITH_BT
 #include "hardware/bluetoothlowenergy/bluetoothlowenergymanagerimplementation.h"
+#endif
 #include "hardware/network/mqtt/mqttproviderimplementation.h"
 #include "hardware/i2c/i2cmanagerimplementation.h"
 #include "hardware/zigbee/zigbeehardwareresourceimplementation.h"
 #include "hardware/zwave/zwavehardwareresourceimplementation.h"
 
+#ifdef WITH_MODBUS
 #include "hardware/modbus/modbusrtumanager.h"
 #include "hardware/modbus/modbusrtuhardwareresourceimplementation.h"
+#endif
 #include "hardware/network/networkdevicediscoveryimpl.h"
 
 namespace nymeaserver {
@@ -56,8 +62,10 @@ HardwareManagerImplementation::HardwareManagerImplementation(Platform *platform,
     // Init hardware resources
     m_pluginTimerManager = new PluginTimerManagerImplementation(this);
 
+#ifdef WITH_RF433
     // Radio 433 MHz
     m_radio433 = new Radio433Brennenstuhl(this);
+#endif
 
     // Network manager
     m_networkManager = new NetworkAccessManagerImpl(m_networkAccessManager, this);
@@ -65,8 +73,10 @@ HardwareManagerImplementation::HardwareManagerImplementation(Platform *platform,
     // UPnP discovery
     m_upnpDiscovery = new UpnpDiscoveryImplementation(m_networkAccessManager, this);
 
+#ifdef WITH_BT
     // Bluetooth LE
     m_bluetoothLowEnergyManager = new BluetoothLowEnergyManagerImplementation(m_pluginTimerManager->registerTimer(10), this);
+#endif
 
     m_i2cManager = new I2CManagerImplementation(this);
 
@@ -74,13 +84,19 @@ HardwareManagerImplementation::HardwareManagerImplementation(Platform *platform,
 
     m_zwaveResource = new ZWaveHardwareResourceImplementation(zwaveManager, this);
 
+#ifdef WITH_MODBUS
     m_modbusRtuResource = new ModbusRtuHardwareResourceImplementation(modbusRtuManager, this);
+#else
+    Q_ASSERT(modbusRtuManager == nullptr);
+#endif
 
     m_networkDeviceDiscovery = new NetworkDeviceDiscoveryImpl(this);
 
     // Enable all the resources
     setResourceEnabled(m_pluginTimerManager, true);
+#ifdef WITH_RF433
     setResourceEnabled(m_radio433, true);
+#endif
 
     if (m_networkManager->available())
         setResourceEnabled(m_networkManager, true);
@@ -91,8 +107,10 @@ HardwareManagerImplementation::HardwareManagerImplementation(Platform *platform,
     if (m_platform->zeroConfController()->available())
         setResourceEnabled(m_platform->zeroConfController(), true);
 
+#ifdef WITH_BT
     if (m_bluetoothLowEnergyManager->available())
         setResourceEnabled(m_bluetoothLowEnergyManager, true);
+#endif
 
     m_mqttProvider = new MqttProviderImplementation(mqttBroker, this);
     qCDebug(dcHardware()) << "Hardware manager initialized successfully";
@@ -103,10 +121,12 @@ HardwareManagerImplementation::~HardwareManagerImplementation()
 
 }
 
+#ifdef WITH_RF433
 Radio433 *HardwareManagerImplementation::radio433()
 {
     return m_radio433;
 }
+#endif
 
 PluginTimerManager *HardwareManagerImplementation::pluginTimerManager()
 {
@@ -128,10 +148,12 @@ PlatformZeroConfController *HardwareManagerImplementation::zeroConfController()
     return m_platform->zeroConfController();
 }
 
+#ifdef WITH_BT
 BluetoothLowEnergyManager *HardwareManagerImplementation::bluetoothLowEnergyManager()
 {
     return m_bluetoothLowEnergyManager;
 }
+#endif
 
 MqttProvider *HardwareManagerImplementation::mqttProvider()
 {
@@ -153,10 +175,12 @@ ZWaveHardwareResource *HardwareManagerImplementation::zwaveResource()
     return m_zwaveResource;
 }
 
+#ifdef WITH_MODBUS
 ModbusRtuHardwareResource *HardwareManagerImplementation::modbusRtuResource()
 {
     return m_modbusRtuResource;
 }
+#endif
 
 NetworkDeviceDiscovery *HardwareManagerImplementation::networkDeviceDiscovery()
 {

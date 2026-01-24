@@ -44,7 +44,9 @@
 #include "nymeacore.h"
 #include "nymeaservice.h"
 #include "nymeasettings.h"
+#ifdef WITH_DBUS
 #include "nymeadbusservice.h"
+#endif
 #include "nymeaapplication.h"
 #include "loggingcategories.h"
 #include "logging/logengine.h"
@@ -107,8 +109,10 @@ int main(int argc, char *argv[])
     QCommandLineOption noColorOption({"c", "no-colors"}, QCoreApplication::translate("nymea", "Log output is colorized by default. Use this option to disable colors."));
     parser.addOption(noColorOption);
 
+#ifdef WITH_DBUS
     QCommandLineOption dbusOption(QStringList() << "session", QCoreApplication::translate("nymea", "If specified, all D-Bus interfaces will be bound to the session bus instead of the system bus."));
     parser.addOption(dbusOption);
+#endif
 
     QString debugDescription = QCoreApplication::translate("nymea", "Debug categories to enable. Prefix with \"No\" to disable. Suffix with \"Info\" or \"Warnings\" to address info and warning messages. Enabling a debug category will implicitly enable the according info category.\nExamples:\n-d ThingManager\n-d NoApplicationInfo\n\n");
     QCommandLineOption debugOption(QStringList() << "d" << "debug-category", debugDescription, "[No]DebugCategory[Warning|Info]]");
@@ -116,9 +120,6 @@ int main(int argc, char *argv[])
 
     QCommandLineOption interfacesOption({"i", "interface"}, QCoreApplication::translate("nymea", "Additional interfaces to listen on. In nymea URI format (e.g. nymeas://127.0.0.2:7777). Note that such interfaces will not require any authentication as they are intended to be used for automated testing only."), "interfaceString");
     parser.addOption(interfacesOption);
-
-    QCommandLineOption noLogDbOption({"m", "no-logengine"}, QCoreApplication::translate("nymea", "Disable the influx DB log engine."));
-    parser.addOption(noLogDbOption);
 
     parser.process(application);
 
@@ -191,6 +192,7 @@ int main(int argc, char *argv[])
     }
 
 
+#ifdef WITH_DBUS
     // Finally set the rules for the logging
     QLoggingCategory::setFilterRules(loggingRules.join('\n'));
 
@@ -198,6 +200,7 @@ int main(int argc, char *argv[])
     if (parser.isSet(dbusOption)) {
         NymeaDBusService::setBusType(QDBusConnection::SessionBus);
     }
+#endif
 
     bool startForeground = parser.isSet(foregroundOption);
     if (startForeground) {
@@ -244,7 +247,7 @@ int main(int argc, char *argv[])
             qCInfo(dcApplication()) << "The core is now up and running.";
         });
 
-        NymeaCore::instance()->init(parser.values(interfacesOption), parser.isSet(noLogDbOption));
+        NymeaCore::instance()->init(parser.values(interfacesOption), true);
 
         int ret = application.exec();
         closeLogFile();

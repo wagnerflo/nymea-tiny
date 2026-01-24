@@ -64,7 +64,9 @@
 
 #include "usermanager.h"
 #include "loggingcategories.h"
+#ifdef WITH_DBUS
 #include "pushbuttondbusservice.h"
+#endif
 #include "nymeacore.h"
 
 #include <QUuid>
@@ -103,9 +105,11 @@ UserManager::UserManager(const QString &dbName, QObject *parent):
         }
     }
 
+#ifdef WITH_DBUS
     m_pushButtonDBusService = new PushButtonDBusService("/io/nymea/nymead/UserManager", this);
     connect(m_pushButtonDBusService, &PushButtonDBusService::pushButtonPressed, this, &UserManager::onPushButtonPressed);
     m_pushButtonTransaction = QPair<int, QString>(-1, QString());
+#endif
 }
 
 /*! Will return true if the database is working fine but doesn't have any information on users whatsoever.
@@ -395,7 +399,11 @@ UserManager::UserError UserManager::setUserInfo(const QString &username, const Q
 /*! Returns true if the push button authentication is available for this system. */
 bool UserManager::pushButtonAuthAvailable() const
 {
+#ifdef WITH_DBUS
     return m_pushButtonDBusService->agentAvailable();
+#else
+    return false;
+#endif
 }
 
 /*! Authenticated the given \a username with the given \a password for the \a deviceName. If the authentication was
@@ -449,6 +457,7 @@ QByteArray UserManager::authenticate(const QString &username, const QString &pas
     return token;
 }
 
+#ifdef WITH_DBUS
 /*! Start the push button authentication for the device with the given \a deviceName. Returns the transaction id as refference to the request. */
 int UserManager::requestPushButtonAuth(const QString &deviceName)
 {
@@ -482,6 +491,7 @@ void UserManager::cancelPushButtonAuth(int transactionId)
     m_pushButtonTransaction.first = -1;
 
 }
+#endif
 
 /*! Request UserInfo.
  The UserInfo for the given username is returned.
@@ -950,6 +960,7 @@ void UserManager::evaluateAllowedThingsForUser()
 
 }
 
+#ifdef WITH_DBUS
 void UserManager::onPushButtonPressed()
 {
     if (m_pushButtonTransaction.first == -1) {
@@ -995,5 +1006,6 @@ void UserManager::onPushButtonPressed()
 
     m_pushButtonTransaction.first = -1;
 }
+#endif
 
 }

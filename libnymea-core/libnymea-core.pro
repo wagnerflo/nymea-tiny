@@ -3,12 +3,12 @@ TARGET = nymea-core
 
 include(../nymea.pri)
 
-QT += core bluetooth dbus qml sql websockets serialport
+QT += core concurrent qml sql websockets serialport
 INCLUDEPATH += $$top_srcdir/libnymea $$top_builddir
 LIBS += -L$$top_builddir/libnymea/ -lnymea -lssl -lcrypto
 
 CONFIG += link_pkgconfig
-PKGCONFIG += nymea-mqtt nymea-networkmanager nymea-zigbee nymea-remoteproxyclient nymea-gpio
+PKGCONFIG += nymea-mqtt nymea-zigbee
 
 packagesExist(systemd) {
     message(Building with systemd support)
@@ -60,8 +60,6 @@ RESOURCES += $$top_srcdir/icons.qrc \
              $$top_srcdir/data/debug-interface/debug-interface.qrc
 
 HEADERS += nymeacore.h \
-    hardware/bluetoothlowenergy/bluetoothpairingjobimplementation.h \
-    hardware/bluetoothlowenergy/nymeabluetoothagent.h \
     hardware/network/macaddressdatabasereplyimpl.h \
     hardware/serialport/serialportmonitor.h \
     hardware/zwave/zwavehardwareresourceimplementation.h \
@@ -84,7 +82,6 @@ HEADERS += nymeacore.h \
     integrations/thingmanagerimplementation.h \
     integrations/translator.h \
     experiences/experiencemanager.h \
-    jsonrpc/modbusrtuhandler.h \
     jsonrpc/zigbeehandler.h \
     jsonrpc/zwavehandler.h \
     ruleengine/ruleengine.h \
@@ -107,17 +104,14 @@ HEADERS += nymeacore.h \
     servers/tcpserver.h \
     servers/mocktcpserver.h \
     servers/webserver.h \
-    servers/bluetoothserver.h \
     servers/websocketserver.h \
     servers/mqttbroker.h \
-    servers/tunnelproxyserver.h \
     jsonrpc/jsonrpcserverimplementation.h \
     jsonrpc/jsonvalidator.h \
     jsonrpc/integrationshandler.h \
     jsonrpc/ruleshandler.h \
     jsonrpc/logginghandler.h \
     jsonrpc/configurationhandler.h \
-    jsonrpc/networkmanagerhandler.h \
     jsonrpc/tagshandler.h \
     jsonrpc/appdatahandler.h \
     jsonrpc/systemhandler.h \
@@ -128,20 +122,9 @@ HEADERS += nymeacore.h \
     usermanager/userinfo.h \
     usermanager/usermanager.h \
     usermanager/tokeninfo.h \
-    usermanager/pushbuttondbusservice.h \
     certificategenerator.h \
     hardwaremanagerimplementation.h \
     hardware/plugintimermanagerimplementation.h \
-    hardware/radio433/radio433brennenstuhl.h \
-    hardware/radio433/radio433transmitter.h \
-    hardware/radio433/radio433brennenstuhlgateway.h \
-    hardware/bluetoothlowenergy/bluetoothlowenergymanagerimplementation.h \
-    hardware/bluetoothlowenergy/bluetoothlowenergydeviceimplementation.h \
-    hardware/bluetoothlowenergy/bluetoothdiscoveryreplyimplementation.h \
-    hardware/modbus/modbusrtuhardwareresourceimplementation.h \
-    hardware/modbus/modbusrtumanager.h \
-    hardware/modbus/modbusrtumasterimpl.h \
-    hardware/modbus/modbusrtureplyimpl.h \
     hardware/network/macaddressdatabase.h \
     hardware/network/networkaccessmanagerimpl.h \
     hardware/network/networkdevicediscoveryimpl.h \
@@ -168,8 +151,6 @@ HEADERS += nymeacore.h \
 
 
 SOURCES += nymeacore.cpp \
-    hardware/bluetoothlowenergy/bluetoothpairingjobimplementation.cpp \
-    hardware/bluetoothlowenergy/nymeabluetoothagent.cpp \
     hardware/network/macaddressdatabasereplyimpl.cpp \
     hardware/serialport/serialportmonitor.cpp \
     hardware/zwave/zwavehardwareresourceimplementation.cpp \
@@ -185,7 +166,6 @@ SOURCES += nymeacore.cpp \
     integrations/thingmanagerimplementation.cpp \
     integrations/translator.cpp \
     experiences/experiencemanager.cpp \
-    jsonrpc/modbusrtuhandler.cpp \
     jsonrpc/zigbeehandler.cpp \
     jsonrpc/zwavehandler.cpp \
     ruleengine/ruleengine.cpp \
@@ -209,16 +189,13 @@ SOURCES += nymeacore.cpp \
     servers/mocktcpserver.cpp \
     servers/webserver.cpp \
     servers/websocketserver.cpp \
-    servers/bluetoothserver.cpp \
     servers/mqttbroker.cpp \
-    servers/tunnelproxyserver.cpp \
     jsonrpc/jsonrpcserverimplementation.cpp \
     jsonrpc/jsonvalidator.cpp \
     jsonrpc/integrationshandler.cpp \
     jsonrpc/ruleshandler.cpp \
     jsonrpc/logginghandler.cpp \
     jsonrpc/configurationhandler.cpp \
-    jsonrpc/networkmanagerhandler.cpp \
     jsonrpc/tagshandler.cpp \
     jsonrpc/appdatahandler.cpp \
     jsonrpc/systemhandler.cpp \
@@ -229,20 +206,9 @@ SOURCES += nymeacore.cpp \
     usermanager/userinfo.cpp \
     usermanager/usermanager.cpp \
     usermanager/tokeninfo.cpp \
-    usermanager/pushbuttondbusservice.cpp \
     certificategenerator.cpp \
     hardwaremanagerimplementation.cpp \
     hardware/plugintimermanagerimplementation.cpp \
-    hardware/radio433/radio433brennenstuhl.cpp \
-    hardware/radio433/radio433transmitter.cpp \
-    hardware/radio433/radio433brennenstuhlgateway.cpp \
-    hardware/bluetoothlowenergy/bluetoothlowenergymanagerimplementation.cpp \
-    hardware/bluetoothlowenergy/bluetoothlowenergydeviceimplementation.cpp \
-    hardware/bluetoothlowenergy/bluetoothdiscoveryreplyimplementation.cpp \
-    hardware/modbus/modbusrtuhardwareresourceimplementation.cpp \
-    hardware/modbus/modbusrtumanager.cpp \
-    hardware/modbus/modbusrtumasterimpl.cpp \
-    hardware/modbus/modbusrtureplyimpl.cpp \
     hardware/network/macaddressdatabase.cpp \
     hardware/network/networkaccessmanagerimpl.cpp \
     hardware/network/networkdevicediscoveryimpl.cpp \
@@ -295,6 +261,75 @@ HEADERS += \
 
 SOURCES += \
     integrations/pythonintegrationplugin.cpp
+}
+
+! CONFIG(disablerf433) {
+    PKGCONFIG += nymea-gpio
+    HEADERS += \
+        hardware/radio433/radio433brennenstuhl.h \
+        hardware/radio433/radio433transmitter.h \
+        hardware/radio433/radio433brennenstuhlgateway.h
+    SOURCES += \
+        hardware/radio433/radio433brennenstuhl.cpp \
+        hardware/radio433/radio433transmitter.cpp \
+        hardware/radio433/radio433brennenstuhlgateway.cpp
+}
+
+! CONFIG(disablebt) {
+    QT += bluetooth
+    HEADERS += \
+        hardware/bluetoothlowenergy/bluetoothpairingjobimplementation.h \
+        hardware/bluetoothlowenergy/nymeabluetoothagent.h \
+        servers/bluetoothserver.h \
+        hardware/bluetoothlowenergy/bluetoothlowenergymanagerimplementation.h \
+        hardware/bluetoothlowenergy/bluetoothlowenergydeviceimplementation.h \
+        hardware/bluetoothlowenergy/bluetoothdiscoveryreplyimplementation.h
+    SOURCES += \
+        hardware/bluetoothlowenergy/bluetoothpairingjobimplementation.cpp \
+        hardware/bluetoothlowenergy/nymeabluetoothagent.cpp \
+        servers/bluetoothserver.cpp \
+        hardware/bluetoothlowenergy/bluetoothlowenergymanagerimplementation.cpp \
+        hardware/bluetoothlowenergy/bluetoothlowenergydeviceimplementation.cpp \
+        hardware/bluetoothlowenergy/bluetoothdiscoveryreplyimplementation.cpp
+}
+
+! CONFIG(disablemodbus) {
+    HEADERS += \
+        jsonrpc/modbusrtuhandler.h \
+        hardware/modbus/modbusrtuhardwareresourceimplementation.h \
+        hardware/modbus/modbusrtumanager.h \
+        hardware/modbus/modbusrtumasterimpl.h \
+        hardware/modbus/modbusrtureplyimpl.h
+    SOURCES += \
+        jsonrpc/modbusrtuhandler.cpp \
+        hardware/modbus/modbusrtuhardwareresourceimplementation.cpp \
+        hardware/modbus/modbusrtumanager.cpp \
+        hardware/modbus/modbusrtumasterimpl.cpp \
+        hardware/modbus/modbusrtureplyimpl.cpp
+}
+
+! CONFIG(disablenetworkmanager) {
+    PKGCONFIG += nymea-networkmanager
+    HEADERS += \
+        jsonrpc/networkmanagerhandler.h
+    SOURCES += \
+        jsonrpc/networkmanagerhandler.cpp
+}
+
+! CONFIG(disabledbus) {
+    QT += dbus
+    HEADERS += \
+        usermanager/pushbuttondbusservice.h
+    SOURCES += \
+        usermanager/pushbuttondbusservice.cpp
+}
+
+! CONFIG(disabletunnelproxy) {
+    PKGCONFIG += nymea-remoteproxyclient
+    HEADERS += \
+        servers/tunnelproxyserver.h
+    SOURCES += \
+        servers/tunnelproxyserver.cpp
 }
 
 target.path = $$[QT_INSTALL_LIBS]

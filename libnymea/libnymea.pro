@@ -3,7 +3,7 @@ include(../nymea.pri)
 TARGET = nymea
 TEMPLATE = lib
 
-QT += network bluetooth dbus serialport sql
+QT += network serialport sql
 
 greaterThan(QT_MAJOR_VERSION, 5) {
     # In Qt6 we need explictily add the gui module in order to have QColor available
@@ -15,15 +15,12 @@ greaterThan(QT_MAJOR_VERSION, 5) {
 DEFINES += LIBNYMEA_LIBRARY
 
 CONFIG += link_pkgconfig
-PKGCONFIG += nymea-zigbee nymea-mqtt nymea-gpio
+PKGCONFIG += nymea-zigbee nymea-mqtt
 
 QMAKE_LFLAGS += -fPIC
 
 HEADERS += \
     hardware/electricity.h \
-    hardware/modbus/modbusrtuhardwareresource.h \
-    hardware/modbus/modbusrtumaster.h \
-    hardware/modbus/modbusrtureply.h \
     hardware/zigbee/zigbeehandler.h \
     hardware/zigbee/zigbeehardwareresource.h \
     hardware/zwave/zwave.h \
@@ -88,7 +85,6 @@ HEADERS += \
     loggingcategories.h \
     nymeasettings.h \
     hardware/pwm.h \
-    hardware/radio433/radio433.h \
     network/upnp/upnpdiscovery.h \
     network/upnp/upnpdevice.h \
     network/upnp/upnpdevicedescriptor.h \
@@ -98,9 +94,6 @@ HEADERS += \
     network/zeroconf/zeroconfservicebrowser.h \
     network/zeroconf/zeroconfserviceentry.h \
     network/zeroconf/zeroconfservicepublisher.h \
-    hardware/bluetoothlowenergy/bluetoothlowenergydevice.h \
-    hardware/bluetoothlowenergy/bluetoothdiscoveryreply.h \
-    hardware/bluetoothlowenergy/bluetoothlowenergymanager.h \
     hardware/i2c/i2cmanager.h \
     hardware/i2c/i2cdevice.h \
     coap/coap.h \
@@ -132,7 +125,6 @@ HEADERS += \
     hardwareresource.h \
     plugintimer.h \
     hardwaremanager.h \
-    nymeadbusservice.h \
     network/mqtt/mqttprovider.h \
     network/mqtt/mqttchannel.h \
     platform/platformsystemcontroller.h \
@@ -144,7 +136,6 @@ HEADERS += \
     webserver/webserverresource.h \
 
 SOURCES += \
-    hardware/modbus/modbusrtuhardwareresource.cpp \
     hardware/zigbee/zigbeehandler.cpp \
     hardware/zigbee/zigbeehardwareresource.cpp \
     hardware/zwave/zwave.cpp \
@@ -199,7 +190,6 @@ SOURCES += \
     platform/package.cpp \
     platform/repository.cpp \
     hardware/pwm.cpp \
-    hardware/radio433/radio433.cpp \
     network/upnp/upnpdiscovery.cpp \
     network/upnp/upnpdevice.cpp \
     network/upnp/upnpdevicedescriptor.cpp \
@@ -209,9 +199,6 @@ SOURCES += \
     network/zeroconf/zeroconfserviceentry.cpp \
     network/zeroconf/zeroconfservicebrowser.cpp \
     network/zeroconf/zeroconfservicepublisher.cpp \
-    hardware/bluetoothlowenergy/bluetoothlowenergymanager.cpp \
-    hardware/bluetoothlowenergy/bluetoothlowenergydevice.cpp \
-    hardware/bluetoothlowenergy/bluetoothdiscoveryreply.cpp \
     hardware/i2c/i2cmanager.cpp \
     hardware/i2c/i2cdevice.cpp \
     coap/coap.cpp \
@@ -253,7 +240,6 @@ SOURCES += \
     hardwareresource.cpp \
     plugintimer.cpp \
     hardwaremanager.cpp \
-    nymeadbusservice.cpp \
     network/mqtt/mqttprovider.cpp \
     network/mqtt/mqttchannel.cpp \
     platform/platformsystemcontroller.cpp \
@@ -267,6 +253,44 @@ SOURCES += \
 
 RESOURCES += \
     interfaces/interfaces.qrc
+
+
+! CONFIG(disablerf433) {
+    PKGCONFIG += nymea-gpio
+    HEADERS += \
+        hardware/radio433/radio433.h
+    SOURCES += \
+        hardware/radio433/radio433.cpp
+}
+
+! CONFIG(disablemodbus) {
+    HEADERS += \
+        hardware/modbus/modbusrtuhardwareresource.h \
+        hardware/modbus/modbusrtumaster.h \
+       hardware/modbus/modbusrtureply.h
+    SOURCES += \
+        hardware/modbus/modbusrtuhardwareresource.cpp
+}
+
+! CONFIG(disablebt) {
+    QT += bluetooth
+    HEADERS += \
+        hardware/bluetoothlowenergy/bluetoothlowenergydevice.h \
+        hardware/bluetoothlowenergy/bluetoothdiscoveryreply.h \
+        hardware/bluetoothlowenergy/bluetoothlowenergymanager.h
+    SOURCES += \
+        hardware/bluetoothlowenergy/bluetoothlowenergymanager.cpp \
+        hardware/bluetoothlowenergy/bluetoothlowenergydevice.cpp \
+        hardware/bluetoothlowenergy/bluetoothdiscoveryreply.cpp
+}
+
+! CONFIG(disabledbus) {
+    QT += dbus
+    HEADER += \
+        nymeadbusservice.h
+    SOURCES += \
+        nymeadbusservice.cpp
+}
 
 ## Install instructions
 
